@@ -24,6 +24,7 @@ urlpatterns = [
     path(route='cart/', view=include(arg='cart.urls', namespace='cart')),
     path(route='orders/', view=include(arg='orders.urls', namespace='orders')),
     path(route='payment/', view=include(arg='payment.urls', namespace='payment')),
+    path(route='coupons/', view=include(arg='coupons.urls', namespace='coupons')),
     path(route='', view=include(arg='shop.urls', namespace='shop')),
 ]
 

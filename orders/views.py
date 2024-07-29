@@ -1,6 +1,6 @@
 import weasyprint
 
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.admin.views.decorators import staff_member_required
 from django.template.loader import render_to_string
@@ -12,13 +12,18 @@ from .forms import OrderCreateForm
 from .models import Order, OrderItem
 
 # Create your views here.
-def order_create(request: HttpRequest) -> HttpResponse:
+def order_create(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
     cart = Cart(request=request)
 
     if request.method == 'POST':
         form = OrderCreateForm(data=request.POST)
         if form.is_valid():
-            order: Order = form.save()
+            order: Order = form.save(commit=False)
+            if cart.coupon:
+                order.coupon = cart.coupon
+                order.discount = cart.coupon.discount
+            order.save()
+            
             for item in cart:
                 OrderItem.objects.create(order=order, product=item['product'], price=item['price'], quantity=item['quantity'])
             cart.clear()

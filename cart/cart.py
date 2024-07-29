@@ -4,6 +4,7 @@ from django.http import HttpRequest
 from django.conf import settings
 
 from shop.models import Product
+from coupons.models import Coupon
 
 class Cart:
     def __init__(self, request: HttpRequest) -> None:
@@ -12,6 +13,7 @@ class Cart:
         if not cart:
             cart = self.session[settings.CART_SESSION_ID] = dict()
         self.cart = cart
+        self.coupon_pk = self.session.get('coupon_pk')
     
     def save(self) -> None:
         self.session.modified = True
@@ -41,6 +43,23 @@ class Cart:
     def clear(self) -> None:
         del self.session[settings.CART_SESSION_ID]
         self.save()
+
+    def get_discount(self) -> Decimal:
+        if self.coupon:
+            return self.coupon.discount / Decimal(100) * self.get_total_price()
+        return Decimal(0)
+    
+    def get_total_price_after_discount(self) -> Decimal:
+        return self.get_total_price() - self.get_discount()
+
+    @property
+    def coupon(self) -> Coupon | None:
+        if self.coupon_pk:
+            try:
+                return Coupon.objects.get(pk=self.coupon_pk)
+            except Coupon.DoesNotExist:
+                pass
+        return None
 
     def __iter__(self):
         product_ids = self.cart.keys()

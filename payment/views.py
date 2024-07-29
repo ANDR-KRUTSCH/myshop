@@ -14,7 +14,7 @@ stripe.api_version = settings.STRIPE_API_VERSION
 
 # Create your views here.
 def payment_process(request: HttpRequest) -> HttpResponse | HttpResponseRedirect:
-    order_pk = request.session.get('order_pk')
+    order_pk = request.session['order_pk']
     order = get_object_or_404(klass=Order, pk=order_pk)
 
     if request.method == 'POST':
@@ -38,15 +38,18 @@ def payment_process(request: HttpRequest) -> HttpResponse | HttpResponseRedirect
                 }
             )
 
+        if order.coupon:
+            stripe_coupon = stripe.Coupon.create(name=order.coupon.code, percent_off=order.discount, duration='once')
+
         session = stripe.checkout.Session.create(
             mode='payment',
             client_reference_id=order.pk,
             success_url=success_url,
             cancel_url=cancel_url,
-            line_items=line_items
+            line_items=line_items,
+            discounts=[dict(coupon=stripe_coupon.id)]
         )
 
-        print(session.url)
         return redirect(to=session.url, code=303)
     else:
         return render(request=request, template_name='payment/process.html', context=locals())

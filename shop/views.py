@@ -2,6 +2,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, get_object_or_404
 
 from cart.forms import CartAddProductForm
+from . import recommender
 from .models import Category, Product
 
 # Create your views here.
@@ -25,8 +26,12 @@ def product_list(request: HttpRequest, category_slug: str = None) -> HttpRespons
 def product_detail(request: HttpRequest, pk: int, slug: str) -> HttpResponse:
     product = get_object_or_404(klass=Product, pk=pk, slug=slug, available=True)
 
+    my_recommender = recommender.Recommender()
+    recommended_products = my_recommender.suggest_products_for(products=[product], max_results=4)
+
     context = dict(
         product=product,
+        recommended_products=recommended_products,
         cart_product_form=CartAddProductForm(),
     )
 

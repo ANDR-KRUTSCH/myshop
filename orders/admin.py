@@ -6,6 +6,7 @@ from django.db.models.query import QuerySet
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 from django.urls import reverse
+from django.utils.safestring import SafeText
 
 from .models import Order, OrderItem
 
@@ -23,7 +24,7 @@ class OrderAdmin(admin.ModelAdmin):
     actions = ('export_to_csv',)
 
     @admin.display(description='Stripe payment')
-    def order_payment(self, obj: Order) -> str:
+    def order_payment(self, obj: Order) -> str | SafeText:
         url = obj.get_stripe_url()
         if obj.stripe_id:
             html = f'<a href="{url}" target="_blank">{obj.stripe_id}</a>'
@@ -31,12 +32,12 @@ class OrderAdmin(admin.ModelAdmin):
         return ''
     
     @admin.display
-    def order_detail(self, obj: Order):
+    def order_detail(self, obj: Order) -> SafeText:
         url = reverse(viewname='orders:admin_order_detail', args=[obj.pk])
         return mark_safe(s=f'<a href="{url}">View</a>')
     
     @admin.display(description='Invoice')
-    def order_pdf(self, obj: Order):
+    def order_pdf(self, obj: Order) -> SafeText:
         url = reverse(viewname='orders:admin_order_pdf', args=[obj.pk])
         return mark_safe(s=f'<a href="{url}">PDF</a>')
 
@@ -47,8 +48,8 @@ class OrderAdmin(admin.ModelAdmin):
 
         fields = [field for field in self.opts.get_fields() if not field.many_to_many and not field.one_to_many]
         
-        writer = csv.writer(csvfile=response)
-        writer.writerow(row=[field.verbose_name for field in fields])
+        writer = csv.writer(response)
+        writer.writerow([field.verbose_name for field in fields])
 
         for item in queryset:
             row = list()
@@ -57,6 +58,6 @@ class OrderAdmin(admin.ModelAdmin):
                 if isinstance(value, datetime.datetime):
                     value = value.strftime('%d/%m/%Y')
                 row.append(value)
-            writer.writerow(row=row)
+            writer.writerow(row)
         
         return response
