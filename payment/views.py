@@ -38,17 +38,19 @@ def payment_process(request: HttpRequest) -> HttpResponse | HttpResponseRedirect
                 }
             )
 
-        if order.coupon:
-            stripe_coupon = stripe.Coupon.create(name=order.coupon.code, percent_off=order.discount, duration='once')
-
-        session = stripe.checkout.Session.create(
+        parrams = dict(
             mode='payment',
             client_reference_id=order.pk,
             success_url=success_url,
             cancel_url=cancel_url,
             line_items=line_items,
-            discounts=[dict(coupon=stripe_coupon.id)]
         )
+
+        if order.coupon:
+            stripe_coupon = stripe.Coupon.create(name=order.coupon.code, percent_off=order.discount, duration='once')
+            parrams['discounts'] = [dict(coupon=stripe_coupon.id)]
+
+        session = stripe.checkout.Session.create(**parrams)
 
         return redirect(to=session.url, code=303)
     else:

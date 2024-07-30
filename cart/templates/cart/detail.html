@@ -1,19 +1,19 @@
 {% extends 'shop/base.html' %}
-{% load static %}
+{% load i18n static %}
 
-{% block title %}Your shopping cart{% endblock %}
+{% block title %}{% translate 'Your shopping cart' %}{% endblock %}
 
 {% block content %}
-    <h1>Your shopping cart</h1>
+    <h1>{% translate 'Your shopping cart' %}</h1>
     <table class="cart">
         <thead>
             <tr>
-                <th>Image</th>
-                <th>Product</th>
-                <th>Quantity</th>
-                <th>Remove</th>
-                <th>Unit price</th>
-                <th>Price</th>
+                <th>{% translate 'Image' %}</th>
+                <th>{% translate 'Product' %}</th>
+                <th>{% translate 'Quantity' %}</th>
+                <th>{% translate 'Remove' %}</th>
+                <th>{% translate 'Unit price' %}</th>
+                <th>{% translate 'Price' %}</th>
             </tr>
         </thead>
         <tbody>
@@ -31,13 +31,13 @@
                                 {{ item.update_quantity_form.quantity }}
                                 {{ item.update_quantity_form.override }}
                                 {% csrf_token %}
-                                <input type="submit" value="Update">
+                                <input type="submit" value="{% translate 'Update' %}">
                             </form>
                         </td>
                         <td>
                             <form action="{% url 'cart:cart_remove' product.pk %}" method="post">
                                 {% csrf_token %}
-                                <input type="submit" value="Remove">
+                                <input type="submit" value="{% translate 'Remove' %}">
                             </form>
                         </td>
                         <td class="num">${{ item.price }}</td>
@@ -47,18 +47,18 @@
             {% endfor %}
             {% if cart.coupon %}
                 <tr class="subtotal">
-                    <td>Subtotal</td>
+                    <td>{% translate 'Subtotal' %}</td>
                     <td colspan="4"></td>
                     <td class="num">${{ cart.get_total_price|floatformat:2 }}</td>
                 </tr>
                 <tr>
-                    <td>"{{ cart.coupon.code }}" coupon ({{ cart.coupon.discount }}% off)</td>
+                    <td>"{{ cart.coupon.code }}" {% translate 'coupon' %} ({{ cart.coupon.discount }}% off)</td>
                     <td colspan="4"></td>
                     <td class="num neg"> - ${{ cart.get_discount|floatformat:2 }}</td>
                 </tr>
             {% endif %}
             <tr class="total">
-                <td>Total</td>
+                <td>{% translate 'Total' %}</td>
                 <td colspan="4"></td>
                 <td class="num">${{ cart.get_total_price_after_discount|floatformat:2 }}</td>
             </tr>
@@ -66,7 +66,7 @@
     </table>
     {% if recommended_products %}
         <div class="recommendations cart">
-            <h3>People who bought this also bought</h3>
+            <h3>{% translate 'People who bought this also bought' %}</h3>
             {% for product in recommended_products %}
                 <div class="item">
                     <a href="{{ product.get_absolute_url }}">
@@ -77,14 +77,14 @@
             {% endfor %}
         </div>
     {% endif %}
-    <p>Apply a coupon:</p>
+    <p>{% translate 'Apply a coupon' %}:</p>
     <form action="{% url 'coupons:apply' %}" method="post">
         {{ coupon_apply_form }}
         {% csrf_token %}
-        <p><input type="submit" value="Apply"></p>
+        <p><input type="submit" value="{% translate 'Apply' %}"></p>
     </form>
     <p class="text-right">
-        <a href="{% url 'shop:product_list' %}" class="button light">Continue shopping</a>
-        <a href="{% url 'orders:order_create' %}" class="button">Checkout</a>
+        <a href="{% url 'shop:product_list' %}" class="button light">{% translate 'Continue shopping' %}</a>
+        <a href="{% url 'orders:order_create' %}" class="button">{% translate 'Checkout' %}</a>
     </p>
 {% endblock %}

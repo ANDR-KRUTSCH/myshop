@@ -12,7 +12,8 @@ def product_list(request: HttpRequest, category_slug: str = None) -> HttpRespons
     products = Product.objects.filter(available=True)
 
     if category_slug:
-        category = get_object_or_404(klass=Category, slug=category_slug)
+        language = request.LANGUAGE_CODE
+        category = get_object_or_404(klass=Category, translations__language_code=language, translations__slug=category_slug)
         products = products.filter(category=category)
 
     context = dict(
@@ -24,7 +25,8 @@ def product_list(request: HttpRequest, category_slug: str = None) -> HttpRespons
     return render(request=request, template_name='shop/product/list.html', context=context)
 
 def product_detail(request: HttpRequest, pk: int, slug: str) -> HttpResponse:
-    product = get_object_or_404(klass=Product, pk=pk, slug=slug, available=True)
+    language = request.LANGUAGE_CODE
+    product = get_object_or_404(klass=Product, pk=pk, translations__language_code=language, translations__slug=slug, available=True)
 
     my_recommender = recommender.Recommender()
     recommended_products = my_recommender.suggest_products_for(products=[product], max_results=4)
